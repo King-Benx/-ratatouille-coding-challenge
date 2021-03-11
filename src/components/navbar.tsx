@@ -1,18 +1,19 @@
 import { FC } from "react";
-import { makeStyles } from "@material-ui/core/styles";
+import { makeStyles, Theme } from "@material-ui/core/styles";
 import { AppBar, Toolbar, Typography, IconButton } from "@material-ui/core";
 import { Menu } from "@material-ui/icons";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme: Theme) => ({
   root: {
    flexGrow:1,
-   height: '10vh'
+   backgroundColor:'#49796b'
   },
   menuButton: {
     marginRight: theme.spacing(2),
   },
   title: {
     flexGrow:1,
+    textAlign: 'center'
   },
 }));
 
@@ -35,10 +36,11 @@ const Navbar: FC<Props> = ({ title }: Props) => {
           >
             <Menu />
           </IconButton>
-        </Toolbar>
+      
         <Typography variant="h6" className={classes.title}>
           {title}
         </Typography>
+        </Toolbar>
       </AppBar>
     </div>
   );
