@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
 import {
   makeStyles,
   withStyles,
@@ -25,7 +25,10 @@ import {
   TextField,
 } from "@material-ui/core";
 import { AddCircle } from "@material-ui/icons";
+import Loader from "react-loader";
+import Moment from "react-moment";
 import Navbar from "./navbar";
+import firebase from "../data/firebase";
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -61,10 +64,10 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginBottom: 10,
   },
   submitButton: {
-    minWidth:500,
-    marginTop:10,
-    marginBottom:10
-  }
+    minWidth: 500,
+    marginTop: 10,
+    marginBottom: 10,
+  },
 }));
 
 const StyledTableCell = withStyles((theme: Theme) =>
@@ -89,12 +92,62 @@ const StyledTableRow = withStyles((theme: Theme) =>
   })
 )(TableRow);
 
+interface Order{
+    id:string;
+    dishName: string;
+    price:number;
+    waiter:string;
+    date:any;
+    ingredients:Array<string>
+}
+
+interface Dishes{
+    dishName: string;
+    ingredients:Array<string>;
+    id:string
+
+}
+
 const Orders: FC = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-  const [dishes, setDishes] = useState("");
+  const [dishes, setDishes] = useState<Array<any>>([]);
   const [waiterName, setWaiterName] = useState("");
   const [dateEntered, setDateEntered] = useState("");
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  //Firebase references
+  const dishRef = firebase.firestore().collection("dishes");
+  const ordersRef = firebase.firestore().collection("orders");
+
+  // Get orders from firebase.
+  const getOrders = () => {
+    setLoading(true);
+    ordersRef.onSnapshot((querySnapShot) => {
+      const items: any = [];
+      querySnapShot.forEach((doc) => {
+        items.push(doc.data());
+      });
+      setOrders(items);
+      setLoading(false);
+    });
+  };
+
+  const getDishes = () => {
+    dishRef.onSnapshot((querySnapShot) => {
+      const items: any = [];
+      querySnapShot.forEach((doc) => {
+        items.push(doc.data());
+      });
+      setDishes(items);
+    });
+  };
+
+  useEffect(()=>{
+    getOrders();
+    getDishes();
+  }, []);
 
   const handleClose = () => {
     setOpen(false);
@@ -132,6 +185,7 @@ const Orders: FC = () => {
         </Grid>
         <Grid container item xs={12}>
           <Grid item xs={12} className={classes.tableContainer}>
+          <Loader loaded={!loading}>
             <TableContainer component={Paper}>
               <Table className={classes.table} aria-label="customized table">
                 <TableHead>
@@ -144,20 +198,33 @@ const Orders: FC = () => {
                     </StyledTableCell>
                     <StyledTableCell>Ingredients</StyledTableCell>
                   </TableRow>
-                </TableHead>
+                </TableHead>      
                 <TableBody>
-                  <StyledTableRow>
-                    <StyledTableCell>Lemon Chicken</StyledTableCell>
-                    <StyledTableCell align="center">$13.99</StyledTableCell>
-                    <StyledTableCell align="center">
-                      Freddy Walker
-                    </StyledTableCell>
-                    <StyledTableCell align="center">Feb 8</StyledTableCell>
-                    <StyledTableCell>Chicken, lemon, olive oil</StyledTableCell>
-                  </StyledTableRow>
+                    {orders.map(
+                      ( {id, dishName, price, waiter, date, ingredients}:Order) => (
+                        <StyledTableRow key={id}>
+                          <StyledTableCell>{dishName}</StyledTableCell>
+                          <StyledTableCell align="center">
+                            ${price}
+                          </StyledTableCell>
+                          <StyledTableCell align="center">
+                            {waiter}
+                          </StyledTableCell>
+                          <StyledTableCell align="center">
+                              <Moment format="MMMM DD">
+                                {date.toDate()}
+                             </Moment>
+                          </StyledTableCell>
+                          <StyledTableCell>
+                            {ingredients.toString()}
+                          </StyledTableCell>
+                        </StyledTableRow>
+                      )
+                    )}     
                 </TableBody>
               </Table>
             </TableContainer>
+            </Loader>
           </Grid>
         </Grid>
       </Grid>
@@ -182,7 +249,7 @@ const Orders: FC = () => {
             <div className={classes.inputControl}>
               <FormControl variant="outlined" className={classes.formControl}>
                 <InputLabel id="demo-simple-select-outlined-label">
-                  Age
+                  Dish
                 </InputLabel>
                 <Select
                   labelId="demo-simple-select-outlined-label"
@@ -191,9 +258,9 @@ const Orders: FC = () => {
                   onChange={handleDishChange}
                   label="Dish Name"
                 >
-                  <MenuItem value={10}>Ten</MenuItem>
-                  <MenuItem value={20}>Twenty</MenuItem>
-                  <MenuItem value={30}>Thirty</MenuItem>
+                 {dishes.map(({dishName, ingredients, id}: Dishes)=>(
+                     <option value={id}>{dishName}</option>
+                 ))}
                 </Select>
               </FormControl>
             </div>
