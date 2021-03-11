@@ -104,7 +104,7 @@ interface Order{
 interface Dishes{
     dishName: string;
     ingredients:Array<string>;
-    id:string
+    _id:string
 
 }
 
@@ -112,6 +112,7 @@ const Orders: FC = () => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [dishes, setDishes] = useState<Array<any>>([]);
+  const [selectedDish, setSelectedDish] = useState("");
   const [waiterName, setWaiterName] = useState("");
   const [dateEntered, setDateEntered] = useState("");
   const [orders, setOrders] = useState([]);
@@ -158,13 +159,22 @@ const Orders: FC = () => {
   };
 
   const handleDishChange = (e: React.ChangeEvent<any>) =>
-    setDishes(e.target.value);
+    setSelectedDish(e.target.value);
 
   const handleWaiterChange = (e: React.ChangeEvent<any>) =>
     setWaiterName(e.target.value);
 
   const handleDateChange = (e: React.ChangeEvent<any>) =>
     setDateEntered(e.target.value);
+
+  const handleFormSubmit = (e: React.ChangeEvent<any>) => {
+      e.preventDefault();
+    // Validate data from fields
+
+    // Query data from dishes to retrieve ingredients
+
+    // cretate a new object and write to firebase
+  }
 
   return (
     <div className={classes.root}>
@@ -235,7 +245,7 @@ const Orders: FC = () => {
       >
         <DialogTitle id="form-dialog-title">New Order</DialogTitle>
         <DialogContent>
-          <form className={classes.root} noValidate autoComplete="off">
+          <form className={classes.root} onSubmit={handleFormSubmit} noValidate autoComplete="off">
             <div className={classes.inputControl}>
               <TextField
                 id="outlined-basic"
@@ -258,8 +268,8 @@ const Orders: FC = () => {
                   onChange={handleDishChange}
                   label="Dish Name"
                 >
-                 {dishes.map(({dishName, ingredients, id}: Dishes)=>(
-                     <option value={id}>{dishName}</option>
+                 {dishes.map(({dishName}: Dishes)=>(
+                     <option value={dishName}>{dishName}</option>
                  ))}
                 </Select>
               </FormControl>
